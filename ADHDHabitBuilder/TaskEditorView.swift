@@ -10,6 +10,8 @@ struct TaskEditorView: View {
     @State private var endDate: Date
     let onSave: (HabitTask) -> Void
 
+    private let earliestActiveFrom: Date
+
     private static let weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
     init(task: HabitTask, onSave: @escaping (HabitTask) -> Void) {
@@ -19,6 +21,7 @@ struct TaskEditorView: View {
         _deadline = State(initialValue: Self.parseTime(task.schedule.deadline))
         _hasEndDate = State(initialValue: task.schedule.activeUntil != nil)
         _endDate = State(initialValue: task.schedule.activeUntil ?? Date())
+        self.earliestActiveFrom = Calendar.current.startOfDay(for: task.schedule.activeFrom)
         self.onSave = onSave
     }
 
@@ -97,6 +100,7 @@ struct TaskEditorView: View {
             Section("Active dates") {
                 DatePicker("Start date",
                            selection: $draft.schedule.activeFrom,
+                           in: earliestActiveFrom...,
                            displayedComponents: .date)
                 Toggle("Has end date", isOn: $hasEndDate)
                 if hasEndDate {
@@ -105,7 +109,7 @@ struct TaskEditorView: View {
                                in: draft.schedule.activeFrom...,
                                displayedComponents: .date)
                 }
-                Text("The task appears on days within this range only. Past days outside the range keep any completions they already had.")
+                Text("The task appears on days within this range only. It can't be moved earlier than \(Self.dateFormatter.string(from: earliestActiveFrom)).")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -133,7 +137,11 @@ struct TaskEditorView: View {
         t.schedule.weekdays.sort()
         t.schedule.deadline = Self.formatTime(deadline)
         t.schedule.startTime = hasStartTime ? Self.formatTime(startTime) : nil
-        t.schedule.activeFrom = Calendar.current.startOfDay(for: t.schedule.activeFrom)
+        let clampedFrom = max(
+            Calendar.current.startOfDay(for: t.schedule.activeFrom),
+            earliestActiveFrom
+        )
+        t.schedule.activeFrom = clampedFrom
         t.schedule.activeUntil = hasEndDate
             ? Calendar.current.startOfDay(for: endDate)
             : nil
@@ -203,6 +211,12 @@ struct TaskEditorView: View {
         comps.minute = m
         return Calendar.current.date(from: comps) ?? Date()
     }
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        return f
+    }()
 
     private static func formatTime(_ date: Date) -> String {
         let comps = Calendar.current.dateComponents([.hour, .minute], from: date)

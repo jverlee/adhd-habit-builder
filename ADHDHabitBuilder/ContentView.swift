@@ -3,9 +3,12 @@ import UIKit
 
 struct DayHomeView: View {
     @EnvironmentObject private var store: LocalStore
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var dayOffset: Int = 0
     @State private var showingMonthView = false
     @State private var showingAdminGate = false
+
+    private var isCompact: Bool { hSizeClass == .compact }
 
     private var childID: UUID? { store.selectedChildId }
 
@@ -62,13 +65,14 @@ struct DayHomeView: View {
     private var header: some View {
         let date = Self.date(forOffset: dayOffset)
         let score = childID.flatMap { store.score(child: $0, on: date) }
-        return HStack(alignment: .center, spacing: 12) {
+        let buttonSize: CGFloat = isCompact ? 36 : 42
+        return HStack(alignment: .center, spacing: isCompact ? 8 : 12) {
             Button {
                 store.clearSelection()
             } label: {
                 Image(systemName: "person.2.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 42, height: 42)
+                    .font(.system(size: isCompact ? 15 : 18, weight: .semibold))
+                    .frame(width: buttonSize, height: buttonSize)
                     .background(.regularMaterial, in: Circle())
                     .overlay(Circle().stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .foregroundStyle(.primary)
@@ -77,17 +81,19 @@ struct DayHomeView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(dayLabel(offset: dayOffset, date: date))
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: isCompact ? 22 : 32, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
                 if let child = store.selectedChild {
-                    Text("\(child.name) · \(Self.fullDateFormatter.string(from: date))")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                    Text(secondaryLine(child: child, date: date))
+                        .font(.system(size: isCompact ? 12 : 15, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
-            Spacer()
+            Spacer(minLength: 4)
             if let score {
-                ScoreBadge(score: score)
+                ScoreBadge(score: score, compact: isCompact)
             }
             if dayOffset != 0 {
                 Button {
@@ -96,9 +102,9 @@ struct DayHomeView: View {
                     }
                 } label: {
                     Text("Today")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 10)
+                        .font(.system(size: isCompact ? 13 : 15, weight: .semibold, design: .rounded))
+                        .padding(.horizontal, isCompact ? 12 : 18)
+                        .padding(.vertical, isCompact ? 8 : 10)
                         .background(
                             LinearGradient(
                                 colors: [Color(hex: "7C5CFF"), Color(hex: "5B5BD6")],
@@ -116,8 +122,8 @@ struct DayHomeView: View {
                 showingMonthView = true
             } label: {
                 Image(systemName: "calendar")
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 42, height: 42)
+                    .font(.system(size: isCompact ? 15 : 18, weight: .semibold))
+                    .frame(width: buttonSize, height: buttonSize)
                     .background(.regularMaterial, in: Circle())
                     .overlay(Circle().stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .foregroundStyle(.primary)
@@ -127,17 +133,24 @@ struct DayHomeView: View {
                 showingAdminGate = true
             } label: {
                 Image(systemName: "gearshape.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 42, height: 42)
+                    .font(.system(size: isCompact ? 15 : 18, weight: .semibold))
+                    .frame(width: buttonSize, height: buttonSize)
                     .background(.regularMaterial, in: Circle())
                     .overlay(Circle().stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
+        .padding(.horizontal, isCompact ? 16 : 28)
+        .padding(.top, isCompact ? 8 : 16)
+        .padding(.bottom, isCompact ? 8 : 12)
+    }
+
+    private func secondaryLine(child: Child, date: Date) -> String {
+        if isCompact {
+            return "\(child.name) · \(Self.shortDateFormatter.string(from: date))"
+        }
+        return "\(child.name) · \(Self.fullDateFormatter.string(from: date))"
     }
 
     private func dayLabel(offset: Int, date: Date) -> String {
@@ -160,6 +173,12 @@ struct DayHomeView: View {
         return f
     }()
 
+    private static let shortDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.setLocalizedDateFormatFromTemplate("MMMd")
+        return f
+    }()
+
     private static let weekdayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "EEEE"
@@ -172,6 +191,7 @@ private struct DayPage: View {
     @EnvironmentObject private var store: LocalStore
     @State private var capturingTask: HabitTask?
     @State private var showingCameraUnavailable = false
+    @State private var undoCandidate: HabitTask?
 
     private var isToday: Bool { Calendar.current.isDateInToday(date) }
 
@@ -239,11 +259,36 @@ private struct DayPage: View {
         } message: {
             Text("Run the app on a real iPad to take photos.")
         }
+        .alert(
+            "Mark as not done?",
+            isPresented: Binding(
+                get: { undoCandidate != nil },
+                set: { if !$0 { undoCandidate = nil } }
+            ),
+            presenting: undoCandidate
+        ) { task in
+            Button("Mark as incomplete", role: .destructive) {
+                if let childID = store.selectedChildId {
+                    withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) {
+                        store.setCompletion(child: childID, task: task, on: date, completed: false)
+                    }
+                }
+                undoCandidate = nil
+            }
+            Button("Cancel", role: .cancel) {
+                undoCandidate = nil
+            }
+        } message: { task in
+            Text("\"\(task.title)\" will be marked incomplete again.")
+        }
     }
 
     private func handleTap(task: HabitTask, now: Date) {
         guard isToday, let childID = store.selectedChildId else { return }
-        guard store.completion(child: childID, task: task, on: date) == nil else { return }
+        if store.completion(child: childID, task: task, on: date) != nil {
+            undoCandidate = task
+            return
+        }
         if let unlockTime = task.startDate(on: date), now < unlockTime { return }
 
         switch task.completionMethod {
@@ -327,20 +372,21 @@ private struct ProgressHeader: View {
 
 private struct ScoreBadge: View {
     let score: DayScore
+    var compact: Bool = false
 
     var body: some View {
-        HStack(spacing: 7) {
+        HStack(spacing: compact ? 5 : 7) {
             Circle()
                 .fill(score.band.color)
-                .frame(width: 9, height: 9)
+                .frame(width: compact ? 7 : 9, height: compact ? 7 : 9)
             Text("\(score.displayPercent)%")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .font(.system(size: compact ? 13 : 16, weight: .semibold, design: .rounded))
                 .foregroundStyle(score.band.color)
                 .contentTransition(.numericText())
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: score.displayPercent)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, compact ? 10 : 14)
+        .padding(.vertical, compact ? 6 : 8)
         .background(score.band.color.opacity(0.12), in: Capsule())
         .overlay(
             Capsule().stroke(score.band.color.opacity(0.25), lineWidth: 1)
@@ -358,6 +404,13 @@ private struct TaskCard: View {
 
     private var isComplete: Bool { completion != nil }
     private var isLocked: Bool { lockedUntil != nil }
+    private var wasLate: Bool {
+        guard let completion, let deadline = task.deadlineDate(on: day) else { return false }
+        return completion.completedAt > deadline
+    }
+    private var completionTint: Color {
+        Color(hex: wasLate ? "F59E0B" : "22C55E")
+    }
 
     var body: some View {
         HStack(spacing: 16) {
@@ -376,10 +429,13 @@ private struct TaskCard: View {
                         Label(deadlineText, systemImage: "clock")
                             .font(.system(size: 14, weight: .medium, design: .rounded))
                             .foregroundStyle(.secondary)
+                        Label("\(task.points) pts", systemImage: "star.fill")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(.tertiary)
                         if let completion {
-                            Label(timeString(completion.completedAt), systemImage: "checkmark.circle.fill")
+                            Label(timeString(completion.completedAt) + (wasLate ? " · late" : ""), systemImage: "checkmark.circle.fill")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundStyle(Color(hex: "22C55E"))
+                                .foregroundStyle(completionTint)
                         }
                     }
                 }
@@ -425,14 +481,14 @@ private struct TaskCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white, Color(hex: "22C55E"))
+                    .foregroundStyle(.white, completionTint)
                     .background(Circle().fill(.white).padding(2))
                     .offset(x: 4, y: 4)
             }
         } else if isComplete {
             ZStack {
                 Circle()
-                    .fill(Color(hex: "22C55E"))
+                    .fill(completionTint)
                     .frame(width: 44, height: 44)
                 Image(systemName: "checkmark")
                     .font(.system(size: 20, weight: .bold))

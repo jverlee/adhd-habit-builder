@@ -25,8 +25,15 @@ struct HabitTask: Identifiable, Codable, Hashable {
     var completionMethod: CompletionMethod
     var points: Int
     var schedule: TaskSchedule
+    /// When set, this task is a frozen past version that was replaced by a newer
+    /// task (with the given UUID) after a scoring-affecting edit. Frozen versions
+    /// remain visible on past days so history stays immutable, but are hidden from
+    /// the active and archived admin lists.
+    var supersededBy: UUID?
 
     var color: Color { Color(hex: colorHex) }
+
+    var isSuperseded: Bool { supersededBy != nil }
 }
 
 struct TaskSchedule: Codable, Hashable {
@@ -67,12 +74,8 @@ extension HabitTask {
     }
 
     func startDate(on day: Date, calendar: Calendar = .current) -> Date? {
-        if let raw = schedule.startTime,
-           let parsed = Self.time(raw, on: day, calendar: calendar) {
-            return parsed
-        }
-        guard let deadline = deadlineDate(on: day, calendar: calendar) else { return nil }
-        return calendar.date(byAdding: .hour, value: -4, to: deadline)
+        guard let raw = schedule.startTime else { return nil }
+        return Self.time(raw, on: day, calendar: calendar)
     }
 
     private static func time(_ s: String, on day: Date, calendar: Calendar) -> Date? {
