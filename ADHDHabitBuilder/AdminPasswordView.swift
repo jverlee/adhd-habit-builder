@@ -14,10 +14,20 @@ struct AdminPasswordView<Destination: View>: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color(.systemGroupedBackground).ignoresSafeArea()
+            if showingDestination {
+                destination()
+            } else {
+                passwordEntry
+            }
+        }
+        .onAppear { focused = true }
+    }
 
-                VStack(spacing: 24) {
+    private var passwordEntry: some View {
+        ZStack {
+            Color(.systemGroupedBackground).ignoresSafeArea()
+
+            VStack(spacing: 24) {
                     ZStack {
                         Circle()
                             .fill(Color(hex: "5B5BD6").opacity(0.15))
@@ -76,17 +86,12 @@ struct AdminPasswordView<Destination: View>: View {
                 }
                 .padding(.horizontal, 24)
             }
-            .navigationTitle("")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-            .navigationDestination(isPresented: $showingDestination) {
-                destination()
+        .navigationTitle("")
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Cancel") { dismiss() }
             }
         }
-        .onAppear { focused = true }
     }
 
     private func submit() {

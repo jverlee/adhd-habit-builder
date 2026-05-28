@@ -86,9 +86,42 @@ final class LocalStore: ObservableObject {
         save()
     }
 
+    /// Saves edits to a task. If the change affects scoring (points, deadline,
+    /// start time, or weekdays) AND the task was active on any past day, the old
+    /// version is frozen (activeUntil = yesterday, supersededBy = newID) and a
+    /// fresh version is created starting today. Past completions stay tied to the
+    /// frozen version so historical percentages don't shift.
     func updateTask(_ task: HabitTask) {
         guard let idx = tasks.firstIndex(where: { $0.id == task.id }) else { return }
-        tasks[idx] = task
+        let old = tasks[idx]
+        let today = calendar.startOfDay(for: Date())
+        let hadPastDays = calendar.startOfDay(for: old.schedule.activeFrom) < today
+        let scoringChanged =
+            old.points != task.points
+            || old.schedule.deadline != task.schedule.deadline
+            || old.schedule.startTime != task.schedule.startTime
+            || old.schedule.weekdays.sorted() != task.schedule.weekdays.sorted()
+
+        if hadPastDays && scoringChanged {
+            let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+            var successor = task
+            successor.id = UUID()
+            successor.schedule.activeFrom = today
+            successor.supersededBy = nil
+            if let until = successor.schedule.activeUntil,
+               calendar.startOfDay(for: until) < today {
+                successor.schedule.activeUntil = nil
+            }
+
+            var frozen = old
+            frozen.schedule.activeUntil = yesterday
+            frozen.supersededBy = successor.id
+
+            tasks[idx] = frozen
+            tasks.append(successor)
+        } else {
+            tasks[idx] = task
+        }
         save()
     }
 
@@ -122,14 +155,15 @@ final class LocalStore: ObservableObject {
     /// Tasks currently active for a child (visible today + going forward).
     func activeTasks(for childID: UUID) -> [HabitTask] {
         tasks
-            .filter { $0.childID == childID && !$0.isArchived }
+            .filter { $0.childID == childID && !$0.isArchived && !$0.isSuperseded }
             .sorted { ($0.schedule.deadline, $0.title) < ($1.schedule.deadline, $1.title) }
     }
 
-    /// Tasks that have been archived (activeUntil in the past).
+    /// Tasks that have been archived (activeUntil in the past). Frozen
+    /// superseded versions are hidden — they exist only to preserve history.
     func archivedTasks(for childID: UUID) -> [HabitTask] {
         tasks
-            .filter { $0.childID == childID && $0.isArchived }
+            .filter { $0.childID == childID && $0.isArchived && !$0.isSuperseded }
             .sorted { ($0.schedule.deadline, $0.title) < ($1.schedule.deadline, $1.title) }
     }
 
