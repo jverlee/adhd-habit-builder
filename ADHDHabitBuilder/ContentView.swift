@@ -1,10 +1,13 @@
 import SwiftUI
 import UIKit
 
-struct ContentView: View {
-    @StateObject private var store = TaskStore()
+struct DayHomeView: View {
+    @EnvironmentObject private var store: LocalStore
     @State private var dayOffset: Int = 0
     @State private var showingMonthView = false
+    @State private var showingAdminGate = false
+
+    private var childID: UUID? { store.selectedChildId }
 
     private var pageRange: ClosedRange<Int> {
         let today = Calendar.current.startOfDay(for: Date())
@@ -27,7 +30,6 @@ struct ContentView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
         }
-        .environmentObject(store)
         .sheet(isPresented: $showingMonthView) {
             MonthView(initialMonth: Self.date(forOffset: dayOffset)) { selectedDate in
                 let today = Calendar.current.startOfDay(for: Date())
@@ -38,6 +40,14 @@ struct ContentView: View {
                 }
             }
             .environmentObject(store)
+        }
+        .sheet(isPresented: $showingAdminGate) {
+            if let childID {
+                AdminPasswordView(title: store.selectedChild.map { "Admin — \($0.name)" } ?? "Admin") {
+                    AdminView(childID: childID)
+                }
+                .environmentObject(store)
+            }
         }
     }
 
@@ -51,17 +61,32 @@ struct ContentView: View {
 
     private var header: some View {
         let date = Self.date(forOffset: dayOffset)
+        let score = childID.flatMap { store.score(child: $0, on: date) }
         return HStack(alignment: .center, spacing: 12) {
+            Button {
+                store.clearSelection()
+            } label: {
+                Image(systemName: "person.2.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 42, height: 42)
+                    .background(.regularMaterial, in: Circle())
+                    .overlay(Circle().stroke(Color.primary.opacity(0.06), lineWidth: 1))
+                    .foregroundStyle(.primary)
+            }
+            .buttonStyle(.plain)
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(dayLabel(offset: dayOffset, date: date))
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
-                Text(Self.fullDateFormatter.string(from: date))
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
+                if let child = store.selectedChild {
+                    Text("\(child.name) · \(Self.fullDateFormatter.string(from: date))")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
             }
             Spacer()
-            if let score = store.score(for: date) {
+            if let score {
                 ScoreBadge(score: score)
             }
             if dayOffset != 0 {
@@ -96,6 +121,17 @@ struct ContentView: View {
                     .background(.regularMaterial, in: Circle())
                     .overlay(Circle().stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .foregroundStyle(.primary)
+            }
+            .buttonStyle(.plain)
+            Button {
+                showingAdminGate = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 42, height: 42)
+                    .background(.regularMaterial, in: Circle())
+                    .overlay(Circle().stroke(Color.primary.opacity(0.06), lineWidth: 1))
+                    .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
         }
@@ -133,17 +169,20 @@ struct ContentView: View {
 
 private struct DayPage: View {
     let date: Date
-    @EnvironmentObject private var store: TaskStore
+    @EnvironmentObject private var store: LocalStore
     @State private var capturingTask: HabitTask?
     @State private var showingCameraUnavailable = false
 
     private var isToday: Bool { Calendar.current.isDateInToday(date) }
 
     var body: some View {
-        let tasks = store.tasks(for: date)
-        let completed = tasks.filter { store.completion(for: $0, on: date) != nil }.count
-
-        let score = store.score(for: date)
+        let tasks = (store.selectedChildId).map { store.tasksScheduled(child: $0, on: date) } ?? []
+        let childID = store.selectedChildId
+        let completed = tasks.filter {
+            guard let childID else { return false }
+            return store.completion(child: childID, task: $0, on: date) != nil
+        }.count
+        let score = childID.flatMap { store.score(child: $0, on: date) }
 
         ScrollView {
             VStack(spacing: 18) {
@@ -160,10 +199,13 @@ private struct DayPage: View {
                                 let unlockTime = task.startDate(on: date)
                                 let locked = isToday
                                     && unlockTime.map { context.date < $0 } ?? false
+                                let completion = childID.flatMap {
+                                    store.completion(child: $0, task: task, on: date)
+                                }
                                 TaskCard(
                                     task: task,
                                     day: date,
-                                    completion: store.completion(for: task, on: date),
+                                    completion: completion,
                                     interactive: isToday && !locked,
                                     lockedUntil: locked ? unlockTime : nil
                                 )
@@ -186,8 +228,8 @@ private struct DayPage: View {
         .scrollIndicators(.hidden)
         .sheet(item: $capturingTask) { task in
             CameraPicker { image in
-                if let image {
-                    store.recordCompletion(task: task, on: date, image: image)
+                if let image, let childID = store.selectedChildId {
+                    store.recordCompletion(child: childID, task: task, on: date, image: image)
                 }
             }
             .ignoresSafeArea()
@@ -200,8 +242,8 @@ private struct DayPage: View {
     }
 
     private func handleTap(task: HabitTask, now: Date) {
-        guard isToday else { return }
-        guard store.completion(for: task, on: date) == nil else { return }
+        guard isToday, let childID = store.selectedChildId else { return }
+        guard store.completion(child: childID, task: task, on: date) == nil else { return }
         if let unlockTime = task.startDate(on: date), now < unlockTime { return }
 
         switch task.completionMethod {
@@ -213,7 +255,7 @@ private struct DayPage: View {
             }
         case .tap:
             withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) {
-                store.recordCompletion(task: task, on: date, image: nil)
+                store.recordCompletion(child: childID, task: task, on: date, image: nil)
             }
         }
     }
@@ -312,7 +354,7 @@ private struct TaskCard: View {
     let completion: TaskCompletion?
     let interactive: Bool
     let lockedUntil: Date?
-    @EnvironmentObject private var store: TaskStore
+    @EnvironmentObject private var store: LocalStore
 
     private var isComplete: Bool { completion != nil }
     private var isLocked: Bool { lockedUntil != nil }
@@ -441,7 +483,7 @@ private struct MonthView: View {
     @State private var visibleMonth: Date
     let onSelectDay: (Date) -> Void
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var store: TaskStore
+    @EnvironmentObject private var store: LocalStore
 
     private let calendar: Calendar = .current
 
@@ -534,12 +576,13 @@ private struct MonthView: View {
     private var daysGrid: some View {
         let days = daysForGrid()
         let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 7)
+        let childID = store.selectedChildId
         return LazyVGrid(columns: columns, spacing: 8) {
             ForEach(days, id: \.self) { day in
                 let inMonth = calendar.isDate(day, equalTo: visibleMonth, toGranularity: .month)
                 let isToday = calendar.isDateInToday(day)
                 let beforeInstall = day < store.installDay
-                let score = inMonth ? store.score(for: day) : nil
+                let score = (inMonth ? childID : nil).flatMap { store.score(child: $0, on: day) }
                 DayCell(
                     date: day,
                     inMonth: inMonth,
@@ -659,5 +702,13 @@ private struct DayCell: View {
 }
 
 #Preview {
-    ContentView()
+    let store = LocalStore()
+    if let first = store.children.first {
+        store.selectChild(first.id)
+    } else {
+        let c = store.addChild(name: "Demo")
+        store.selectChild(c.id)
+    }
+    return DayHomeView()
+        .environmentObject(store)
 }

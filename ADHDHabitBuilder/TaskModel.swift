@@ -2,21 +2,101 @@ import Foundation
 import SwiftUI
 import UIKit
 
-enum CompletionMethod: String, Codable, Hashable {
-    case photo   // tap → opens camera, image stored with completion
-    case tap     // tap → instantly marks complete (no image)
+enum CompletionMethod: String, Codable, Hashable, CaseIterable, Identifiable {
+    case photo
+    case tap
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .photo: "Photo"
+        case .tap: "Tap"
+        }
+    }
 }
 
 struct HabitTask: Identifiable, Codable, Hashable {
-    let id: UUID
-    let title: String
-    let icon: String                       // SF Symbol name
-    let colorHex: String                   // "#RRGGBB"
-    let completionMethod: CompletionMethod
-    let points: Int                        // earned for on-time completion; half if late
-    let schedule: TaskSchedule
+    var id: UUID
+    var childID: UUID
+    var title: String
+    var icon: String                       // SF Symbol name
+    var colorHex: String                   // "#RRGGBB"
+    var completionMethod: CompletionMethod
+    var points: Int
+    var schedule: TaskSchedule
 
     var color: Color { Color(hex: colorHex) }
+}
+
+struct TaskSchedule: Codable, Hashable {
+    /// Calendar.weekday values (1=Sunday … 7=Saturday). Empty = every day.
+    var weekdays: [Int]
+    var startTime: String?                  // "HH:mm", optional
+    var deadline: String                    // "HH:mm"
+    /// First day the task is active. Defaults to the day it was created.
+    var activeFrom: Date
+    /// Last day the task is active (inclusive). `nil` means ongoing.
+    /// Set to yesterday on "delete" so today+future drop it but past days keep history.
+    var activeUntil: Date?
+}
+
+extension HabitTask {
+    func appliesTo(date: Date, calendar: Calendar = .current) -> Bool {
+        let day = calendar.startOfDay(for: date)
+        let from = calendar.startOfDay(for: schedule.activeFrom)
+        guard day >= from else { return false }
+        if let until = schedule.activeUntil,
+           day > calendar.startOfDay(for: until) {
+            return false
+        }
+        if !schedule.weekdays.isEmpty,
+           !schedule.weekdays.contains(calendar.component(.weekday, from: date)) {
+            return false
+        }
+        return true
+    }
+
+    var isArchived: Bool {
+        guard let until = schedule.activeUntil else { return false }
+        return Calendar.current.startOfDay(for: until) < Calendar.current.startOfDay(for: Date())
+    }
+
+    func deadlineDate(on day: Date, calendar: Calendar = .current) -> Date? {
+        Self.time(schedule.deadline, on: day, calendar: calendar)
+    }
+
+    func startDate(on day: Date, calendar: Calendar = .current) -> Date? {
+        if let raw = schedule.startTime,
+           let parsed = Self.time(raw, on: day, calendar: calendar) {
+            return parsed
+        }
+        guard let deadline = deadlineDate(on: day, calendar: calendar) else { return nil }
+        return calendar.date(byAdding: .hour, value: -4, to: deadline)
+    }
+
+    private static func time(_ s: String, on day: Date, calendar: Calendar) -> Date? {
+        let parts = s.split(separator: ":")
+        guard parts.count == 2, let h = Int(parts[0]), let m = Int(parts[1]) else { return nil }
+        var comps = calendar.dateComponents([.year, .month, .day], from: day)
+        comps.hour = h
+        comps.minute = m
+        return calendar.date(from: comps)
+    }
+}
+
+struct TaskCompletion: Identifiable, Codable, Hashable {
+    var id: UUID
+    var childID: UUID
+    var taskID: UUID
+    var day: Date
+    var completedAt: Date
+    var imageFilename: String?
+}
+
+struct Child: Identifiable, Codable, Hashable {
+    var id: UUID
+    var name: String
 }
 
 enum ScoreBand {
@@ -69,209 +149,20 @@ extension Color {
     }
 }
 
-struct TaskSchedule: Codable, Hashable {
-    /// Weekdays the task applies to, using `Calendar.weekday` (1=Sunday … 7=Saturday).
-    /// Empty array means every day.
-    var weekdays: [Int]
-    /// Earliest time the task may be completed, 24-hour "HH:mm" local time.
-    /// If nil, defaults to 4 hours before `deadline`.
-    var startTime: String?
-    /// Deadline in 24-hour "HH:mm" local time. Completion after this is still allowed.
-    var deadline: String
-}
+/// Curated palette + icon set used by the admin editor.
+enum TaskPalette {
+    static let colors: [String] = [
+        "#7C5CFF", "#FF8A3D", "#00C2D1", "#FF5C8A",
+        "#FFB627", "#22C55E", "#14B8A6", "#5B5BD6",
+        "#EF4444", "#F59E0B", "#3B82F6", "#A855F7",
+    ]
 
-extension HabitTask {
-    func appliesTo(date: Date, calendar: Calendar = .current) -> Bool {
-        guard !schedule.weekdays.isEmpty else { return true }
-        return schedule.weekdays.contains(calendar.component(.weekday, from: date))
-    }
-
-    func deadlineDate(on day: Date, calendar: Calendar = .current) -> Date? {
-        Self.time(schedule.deadline, on: day, calendar: calendar)
-    }
-
-    /// The earliest time on `day` the user is allowed to complete this task.
-    /// Falls back to deadline − 4h if `schedule.startTime` is unset.
-    func startDate(on day: Date, calendar: Calendar = .current) -> Date? {
-        if let raw = schedule.startTime,
-           let parsed = Self.time(raw, on: day, calendar: calendar) {
-            return parsed
-        }
-        guard let deadline = deadlineDate(on: day, calendar: calendar) else { return nil }
-        return calendar.date(byAdding: .hour, value: -4, to: deadline)
-    }
-
-    private static func time(_ s: String, on day: Date, calendar: Calendar) -> Date? {
-        let parts = s.split(separator: ":")
-        guard parts.count == 2, let h = Int(parts[0]), let m = Int(parts[1]) else { return nil }
-        var comps = calendar.dateComponents([.year, .month, .day], from: day)
-        comps.hour = h
-        comps.minute = m
-        return calendar.date(from: comps)
-    }
-}
-
-struct TaskCompletion: Codable, Identifiable, Hashable {
-    let id: UUID
-    let taskID: UUID
-    let day: Date
-    let completedAt: Date
-    let imageFilename: String?
-}
-
-@MainActor
-final class TaskStore: ObservableObject {
-    @Published private(set) var tasks: [HabitTask] = SampleTasks.all
-    @Published private(set) var completions: [TaskCompletion] = []
-
-    private let calendar = Calendar.current
-    private let completionsURL: URL
-    private let imagesDir: URL
-    private let installDate: Date
-
-    /// First day the user can navigate to (start of install day).
-    var installDay: Date { calendar.startOfDay(for: installDate) }
-
-    init() {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        completionsURL = docs.appendingPathComponent("completions.json")
-        imagesDir = docs.appendingPathComponent("completion-images", isDirectory: true)
-        try? FileManager.default.createDirectory(at: imagesDir, withIntermediateDirectories: true)
-
-        let defaults = UserDefaults.standard
-        let key = "installDate"
-        if let stored = defaults.object(forKey: key) as? Date {
-            installDate = stored
-        } else {
-            let now = Date()
-            defaults.set(now, forKey: key)
-            installDate = now
-        }
-
-        loadCompletions()
-    }
-
-    func tasks(for date: Date) -> [HabitTask] {
-        tasks
-            .filter { $0.appliesTo(date: date, calendar: calendar) }
-            .sorted { ($0.schedule.deadline, $0.title) < ($1.schedule.deadline, $1.title) }
-    }
-
-    func completion(for task: HabitTask, on date: Date) -> TaskCompletion? {
-        let day = calendar.startOfDay(for: date)
-        return completions.first { $0.taskID == task.id && $0.day == day }
-    }
-
-    func recordCompletion(task: HabitTask, on date: Date, image: UIImage?) {
-        let day = calendar.startOfDay(for: date)
-        var filename: String? = nil
-        if let image, let data = image.jpegData(compressionQuality: 0.85) {
-            let name = "\(UUID().uuidString).jpg"
-            let url = imagesDir.appendingPathComponent(name)
-            do {
-                try data.write(to: url)
-                filename = name
-            } catch {
-                print("Failed to save image: \(error)")
-            }
-        }
-        let completion = TaskCompletion(
-            id: UUID(),
-            taskID: task.id,
-            day: day,
-            completedAt: Date(),
-            imageFilename: filename
-        )
-        completions.removeAll { $0.taskID == task.id && $0.day == day }
-        completions.append(completion)
-        saveCompletions()
-    }
-
-    /// Score for a day. Returns nil for future days, pre-install days, or days with no scheduled tasks.
-    func score(for date: Date) -> DayScore? {
-        let day = calendar.startOfDay(for: date)
-        let today = calendar.startOfDay(for: Date())
-        let installDay = calendar.startOfDay(for: installDate)
-        guard day >= installDay else { return nil }
-        guard day <= today else { return nil }
-
-        let scheduled = tasks(for: date)
-        guard !scheduled.isEmpty else { return nil }
-
-        let total = scheduled.reduce(0.0) { $0 + Double($1.points) }
-        var earned = 0.0
-        for task in scheduled {
-            guard let completion = completion(for: task, on: date) else { continue }
-            let onTime: Bool = {
-                guard let deadline = task.deadlineDate(on: date) else { return true }
-                return completion.completedAt <= deadline
-            }()
-            earned += onTime ? Double(task.points) : Double(task.points) * 0.5
-        }
-        let percent = total > 0 ? earned / total : 0
-        return DayScore(earned: earned, total: total, percent: percent, band: ScoreBand(percent: percent))
-    }
-
-    func image(for completion: TaskCompletion) -> UIImage? {
-        guard let name = completion.imageFilename else { return nil }
-        let url = imagesDir.appendingPathComponent(name)
-        return UIImage(contentsOfFile: url.path)
-    }
-
-    private func saveCompletions() {
-        do {
-            let data = try JSONEncoder().encode(completions)
-            try data.write(to: completionsURL)
-        } catch {
-            print("Failed to save completions: \(error)")
-        }
-    }
-
-    private func loadCompletions() {
-        guard let data = try? Data(contentsOf: completionsURL) else { return }
-        if let decoded = try? JSONDecoder().decode([TaskCompletion].self, from: data) {
-            completions = decoded
-        }
-    }
-}
-
-enum SampleTasks {
-    private static func uuid(_ n: Int) -> UUID {
-        UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", n))!
-    }
-
-    static let all: [HabitTask] = [
-        HabitTask(id: uuid(1), title: "Make bed",
-                  icon: "bed.double.fill", colorHex: "#7C5CFF",
-                  completionMethod: .photo, points: 10,
-                  schedule: TaskSchedule(weekdays: [], startTime: "06:00", deadline: "08:00")),
-        HabitTask(id: uuid(2), title: "Eat breakfast",
-                  icon: "fork.knife", colorHex: "#FF8A3D",
-                  completionMethod: .photo, points: 15,
-                  schedule: TaskSchedule(weekdays: [], startTime: "07:00", deadline: "08:30")),
-        HabitTask(id: uuid(3), title: "Brush teeth (morning)",
-                  icon: "mouth.fill", colorHex: "#00C2D1",
-                  completionMethod: .tap, points: 10,
-                  schedule: TaskSchedule(weekdays: [], startTime: "07:00", deadline: "08:45")),
-        HabitTask(id: uuid(4), title: "Pack school bag",
-                  icon: "backpack.fill", colorHex: "#FF5C8A",
-                  completionMethod: .photo, points: 15,
-                  schedule: TaskSchedule(weekdays: [2, 3, 4, 5, 6], startTime: "07:00", deadline: "09:00")),
-        HabitTask(id: uuid(5), title: "Homework",
-                  icon: "pencil.and.list.clipboard", colorHex: "#FFB627",
-                  completionMethod: .photo, points: 25,
-                  schedule: TaskSchedule(weekdays: [2, 3, 4, 5, 6], startTime: "15:30", deadline: "18:00")),
-        HabitTask(id: uuid(6), title: "Clean room",
-                  icon: "sparkles", colorHex: "#22C55E",
-                  completionMethod: .photo, points: 30,
-                  schedule: TaskSchedule(weekdays: [7], startTime: "08:00", deadline: "10:00")),
-        HabitTask(id: uuid(7), title: "Tidy desk",
-                  icon: "tray.fill", colorHex: "#14B8A6",
-                  completionMethod: .photo, points: 20,
-                  schedule: TaskSchedule(weekdays: [1], startTime: nil, deadline: "17:00")),
-        HabitTask(id: uuid(8), title: "Brush teeth (night)",
-                  icon: "moon.stars.fill", colorHex: "#5B5BD6",
-                  completionMethod: .tap, points: 10,
-                  schedule: TaskSchedule(weekdays: [], startTime: "19:30", deadline: "20:30")),
+    static let icons: [String] = [
+        "bed.double.fill", "fork.knife", "mouth.fill", "backpack.fill",
+        "pencil.and.list.clipboard", "sparkles", "tray.fill", "moon.stars.fill",
+        "book.fill", "shower.fill", "drop.fill", "leaf.fill",
+        "figure.run", "music.note", "gamecontroller.fill", "heart.fill",
+        "star.fill", "sun.max.fill", "cloud.fill", "trash.fill",
     ]
 }
+

@@ -13,6 +13,15 @@
 		A100000000000000000000B4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A4 /* Preview Assets.xcassets */; };
 		A100000000000000000000B5 /* TaskModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A5 /* TaskModel.swift */; };
 		A100000000000000000000B6 /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A6 /* CameraPicker.swift */; };
+		A1000000000000000000B10B /* ChildPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A10B /* ChildPickerView.swift */; };
+		A1000000000000000000B10C /* OnboardingChildView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A10C /* OnboardingChildView.swift */; };
+		A1000000000000000000B10F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A10F /* RootView.swift */; };
+		A1000000000000000000B201 /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A201 /* LocalStore.swift */; };
+		A1000000000000000000B202 /* AdminPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A202 /* AdminPasswordView.swift */; };
+		A1000000000000000000B203 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A203 /* AdminView.swift */; };
+		A1000000000000000000B204 /* TaskEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A204 /* TaskEditorView.swift */; };
+		A1000000000000000000B205 /* ManageChildrenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A205 /* ManageChildrenView.swift */; };
+		A1000000000000000000B206 /* DayEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000A206 /* DayEditorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +32,15 @@
 		A100000000000000000000A4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A100000000000000000000A5 /* TaskModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModel.swift; sourceTree = "<group>"; };
 		A100000000000000000000A6 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		A1000000000000000000A10B /* ChildPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChildPickerView.swift; sourceTree = "<group>"; };
+		A1000000000000000000A10C /* OnboardingChildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingChildView.swift; sourceTree = "<group>"; };
+		A1000000000000000000A10F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A1000000000000000000A201 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
+		A1000000000000000000A202 /* AdminPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminPasswordView.swift; sourceTree = "<group>"; };
+		A1000000000000000000A203 /* AdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminView.swift; sourceTree = "<group>"; };
+		A1000000000000000000A204 /* TaskEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEditorView.swift; sourceTree = "<group>"; };
+		A1000000000000000000A205 /* ManageChildrenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageChildrenView.swift; sourceTree = "<group>"; };
+		A1000000000000000000A206 /* DayEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayEditorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,9 +66,18 @@
 			isa = PBXGroup;
 			children = (
 				A100000000000000000000A1 /* ADHDHabitBuilderApp.swift */,
+				A1000000000000000000A10F /* RootView.swift */,
 				A100000000000000000000A2 /* ContentView.swift */,
 				A100000000000000000000A5 /* TaskModel.swift */,
+				A1000000000000000000A201 /* LocalStore.swift */,
 				A100000000000000000000A6 /* CameraPicker.swift */,
+				A1000000000000000000A10B /* ChildPickerView.swift */,
+				A1000000000000000000A10C /* OnboardingChildView.swift */,
+				A1000000000000000000A202 /* AdminPasswordView.swift */,
+				A1000000000000000000A203 /* AdminView.swift */,
+				A1000000000000000000A205 /* ManageChildrenView.swift */,
+				A1000000000000000000A206 /* DayEditorView.swift */,
+				A1000000000000000000A204 /* TaskEditorView.swift */,
 				A100000000000000000000A3 /* Assets.xcassets */,
 				A100000000000000000000D3 /* Preview Content */,
 			);
@@ -147,6 +174,15 @@
 				A100000000000000000000B1 /* ADHDHabitBuilderApp.swift in Sources */,
 				A100000000000000000000B5 /* TaskModel.swift in Sources */,
 				A100000000000000000000B6 /* CameraPicker.swift in Sources */,
+				A1000000000000000000B10B /* ChildPickerView.swift in Sources */,
+				A1000000000000000000B10C /* OnboardingChildView.swift in Sources */,
+				A1000000000000000000B10F /* RootView.swift in Sources */,
+				A1000000000000000000B201 /* LocalStore.swift in Sources */,
+				A1000000000000000000B202 /* AdminPasswordView.swift in Sources */,
+				A1000000000000000000B203 /* AdminView.swift in Sources */,
+				A1000000000000000000B204 /* TaskEditorView.swift in Sources */,
+				A1000000000000000000B205 /* ManageChildrenView.swift in Sources */,
+				A1000000000000000000B206 /* DayEditorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -281,14 +317,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ADHDHabitBuilder/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Take a photo to mark a habit complete.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to mark a habit complete (simulator only).";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ADHDHabitBuilder/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -315,14 +345,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ADHDHabitBuilder/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Take a photo to mark a habit complete.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to mark a habit complete (simulator only).";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ADHDHabitBuilder/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
