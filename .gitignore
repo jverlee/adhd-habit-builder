@@ -19,3 +19,10 @@ Package.resolved
 # CocoaPods / Carthage (not used yet, but pre-empted)
 Pods/
 Carthage/Build/
+
+# Jekyll (docs/ — GitHub Pages site)
+docs/_site/
+docs/.jekyll-cache/
+docs/.bundle/
+docs/vendor/
+docs/Gemfile.lock

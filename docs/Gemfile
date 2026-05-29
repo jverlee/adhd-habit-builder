@@ -1,0 +1,12 @@
+source "https://rubygems.org"
+
+# Pin to the GitHub Pages gem so local previews match what GitHub builds.
+# You do NOT need to install this to deploy — GitHub Pages builds remotely.
+# It's only here for optional local preview with `bundle exec jekyll serve`.
+gem "github-pages", group: :jekyll_plugins
+
+group :jekyll_plugins do
+  gem "jekyll-remote-theme"
+  gem "jekyll-seo-tag"
+  gem "jekyll-sitemap"
+end
