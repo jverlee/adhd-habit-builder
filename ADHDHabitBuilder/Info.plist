@@ -23,7 +23,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Take a photo to mark a habit complete.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Choose a photo to mark a habit complete (simulator only).</string>
+	<string>Choose a photo to mark a habit complete.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -32,7 +34,12 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>
-	<dict/>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<true/>
+	</dict>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
