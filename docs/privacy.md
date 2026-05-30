@@ -50,4 +50,4 @@ If the app is later updated to add cloud features, this policy will be updated a
 
 ## Contact
 
-If you have questions about this policy, contact: **[jonverlee@gmail.com](mailto:jonverlee@gmail.com)**
+If you have questions about this policy, please **[open an issue on GitHub](https://github.com/jverlee/adhd-habit-builder/issues/new/choose)**. A free GitHub account is all that's needed.

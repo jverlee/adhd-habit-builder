@@ -52,6 +52,18 @@
       .hero-blob {
         background: radial-gradient(60% 60% at 50% 40%, rgba(47, 134, 247, 0.35) 0%, rgba(47, 134, 247, 0) 70%);
       }
+      .hero-image-mask {
+        aspect-ratio: 678 / 456;
+        overflow: hidden;
+        border-top-left-radius: 1.5rem;
+        border-top-right-radius: 1.5rem;
+        filter: drop-shadow(0 30px 60px rgba(31, 104, 219, 0.25));
+      }
+      .hero-image-mask img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
     </style>
   </head>
   <body class="bg-slate-50 text-slate-800 antialiased font-sans">
@@ -68,8 +80,8 @@
         <nav class="hidden sm:flex items-center gap-6 text-sm text-slate-600">
           <a href="{{ '/#features' | relative_url }}" class="hover:text-slate-900 transition">Features</a>
           <a href="{{ '/#privacy' | relative_url }}" class="hover:text-slate-900 transition">Privacy</a>
+          <a href="{{ '/support/' | relative_url }}" class="hover:text-slate-900 transition">Support</a>
           <a href="{{ '/privacy/' | relative_url }}" class="hover:text-slate-900 transition">Policy</a>
-          <a href="mailto:jonverlee@gmail.com" class="inline-flex items-center rounded-full bg-slate-900 text-white px-4 py-1.5 text-sm font-medium hover:bg-slate-800 transition">Contact</a>
         </nav>
       </div>
     </header>
@@ -89,8 +101,8 @@
           <span>© {{ 'now' | date: '%Y' }} ADHD Habit Builder. Built for families.</span>
         </div>
         <div class="flex items-center gap-5">
+          <a href="{{ '/support/' | relative_url }}" class="hover:text-slate-900 transition">Support</a>
           <a href="{{ '/privacy/' | relative_url }}" class="hover:text-slate-900 transition">Privacy Policy</a>
-          <a href="mailto:jonverlee@gmail.com" class="hover:text-slate-900 transition">jonverlee@gmail.com</a>
         </div>
       </div>
     </footer>

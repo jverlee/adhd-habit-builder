@@ -1,9 +1,10 @@
 source "https://rubygems.org"
 
-# Pin to the GitHub Pages gem so local previews match what GitHub builds.
-# You do NOT need to install this to deploy — GitHub Pages builds remotely.
-# It's only here for optional local preview with `bundle exec jekyll serve`.
-gem "github-pages", group: :jekyll_plugins
+# Local preview only — GitHub Pages builds the site remotely on push.
+# We use plain Jekyll 4 here because the github-pages gem pins Jekyll 3.9,
+# which doesn't run on Ruby 3.2+ (relies on the removed String#tainted?).
+gem "jekyll", "~> 4.3"
+gem "webrick"
 
 group :jekyll_plugins do
   gem "jekyll-seo-tag"

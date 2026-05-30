@@ -35,49 +35,32 @@ layout: default
     </div>
 
     <div class="mt-16 sm:mt-20 max-w-4xl mx-auto">
-      <div class="relative rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-soft p-4 sm:p-6">
-        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 p-6">
-          <div class="flex items-center justify-between mb-5">
-            <div>
-              <p class="text-xs uppercase tracking-wide text-slate-500">Today · Maya</p>
-              <h3 class="text-lg font-semibold text-slate-900">Morning routine</h3>
-            </div>
-            <div class="text-right">
-              <p class="text-xs text-slate-500">Score</p>
-              <p class="text-lg font-semibold text-emerald-600">82%</p>
-            </div>
-          </div>
-          <div class="h-3 w-full rounded-full bg-slate-100 overflow-hidden flex">
-            <div class="bg-rose-300 h-full" style="width: 18%"></div>
-            <div class="bg-amber-300 h-full" style="width: 24%"></div>
-            <div class="bg-emerald-400 h-full" style="width: 40%"></div>
-          </div>
-          <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col items-center text-center">
-              <div class="text-2xl">🦷</div>
-              <p class="mt-2 text-sm font-medium text-emerald-900">Brush teeth</p>
-              <p class="text-xs text-emerald-700 mt-0.5">Done · 7:42</p>
-            </div>
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col items-center text-center">
-              <div class="text-2xl">🛏️</div>
-              <p class="mt-2 text-sm font-medium text-emerald-900">Make the bed</p>
-              <p class="text-xs text-emerald-700 mt-0.5">Photo · 7:55</p>
-            </div>
-            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 flex flex-col items-center text-center">
-              <div class="text-2xl">🎒</div>
-              <p class="mt-2 text-sm font-medium text-amber-900">Pack backpack</p>
-              <p class="text-xs text-amber-700 mt-0.5">Late · half</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-4 flex flex-col items-center text-center">
-              <div class="text-2xl">📚</div>
-              <p class="mt-2 text-sm font-medium text-slate-700">Read 10 min</p>
-              <p class="text-xs text-slate-500 mt-0.5">Tap to start</p>
-            </div>
-          </div>
+      <div class="relative">
+        <div class="hero-image-mask">
+          <img
+            src="{{ '/assets/habit-tracker.png' | relative_url }}"
+            alt="The ADHD Habit Builder Today view showing a child's morning routine with habit cards and a progress band."
+            class="block w-full h-auto"
+            width="678"
+            height="504"
+          />
         </div>
       </div>
     </div>
   </div>
+
+  <a href="#features" class="group relative block">
+    <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-brand-600 text-white">
+      <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
+        <p class="text-sm sm:text-base font-medium">
+          See what makes it work for kids with ADHD
+        </p>
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 group-hover:bg-white/25 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+        </span>
+      </div>
+    </div>
+  </a>
 </section>
 
 <section id="features" class="relative py-20 sm:py-28">
@@ -109,7 +92,7 @@ layout: default
         </div>
         <h3 class="mt-4 text-lg font-semibold text-slate-900">Live score</h3>
         <p class="mt-2 text-slate-600">
-          A red / yellow / green band fills as the day goes on. Late completions still count for half points — momentum over perfection.
+          A live score band shifts from red to yellow to green as the day fills in. Late completions still count for half points — momentum over perfection.
         </p>
       </div>
 
@@ -190,24 +173,6 @@ layout: default
           <p class="mt-1 text-sm text-slate-600">On-device storage</p>
         </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<section class="relative py-20 sm:py-24">
-  <div class="max-w-4xl mx-auto px-6">
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-10 sm:p-14 text-center shadow-soft">
-      <div class="absolute inset-0 bg-grid opacity-20 pointer-events-none"></div>
-      <h2 class="relative text-3xl sm:text-4xl font-bold tracking-tight text-white">
-        Questions, bugs, or feedback?
-      </h2>
-      <p class="relative mt-3 text-brand-100 text-lg">
-        I read every message — drop me a line.
-      </p>
-      <a href="mailto:jonverlee@gmail.com" class="relative mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-brand-700 font-medium hover:bg-brand-50 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        jonverlee@gmail.com
-      </a>
     </div>
   </div>
 </section>
