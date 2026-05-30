@@ -26,8 +26,11 @@ You need Ruby + Bundler installed. `gem install bundler` if you don't have it.
 
 ## Editing
 
-- `index.md` — landing page.
+- `index.md` — landing page (renders the `home` layout).
 - `privacy.md` — privacy policy (kept in sync with the App Store privacy URL).
-- `_config.yml` — site title, theme, plugins.
+- `_config.yml` — site title, plugins, defaults.
+- `_layouts/default.html` — shared shell: nav, footer, Tailwind setup.
+- `_layouts/home.html` — landing page hero, features grid, privacy callout, CTA.
+- `_layouts/page.html` — typographic article layout (used by `privacy.md`).
 
-The theme is `pages-themes/cayman` via remote_theme — no local theme files needed. Swap it for any GitHub Pages‑supported theme by changing one line in `_config.yml`.
+Styling is plain Tailwind via the Play CDN (loaded in `_layouts/default.html`) — no build step, no Node, no theme gem. Edit the Tailwind config block inline in `default.html` to change brand colors or fonts.

@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: Privacy Policy
 description: ADHD Habit Builder privacy policy — everything stays on your device.
 permalink: /privacy/
