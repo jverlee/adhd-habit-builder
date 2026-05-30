@@ -1,15 +1,17 @@
 ---
 layout: page
 title: Privacy Policy
-description: ADHD Habit Builder privacy policy — everything stays on your device.
+description: Habi (Habit builder for kids with ADHD) privacy policy — everything stays on your device.
 permalink: /privacy/
 ---
 
-# Privacy Policy — ADHD Habit Builder
+# Privacy Policy — Habi
+
+_Habit builder for kids with ADHD._
 
 _Last updated: May 28, 2026_
 
-ADHD Habit Builder ("the app") is designed for families and stores everything **locally on your device**. We do not have servers, we do not collect analytics, and we do not have accounts.
+Habi ("the app") is designed for families and stores everything **locally on your device**. We do not have servers, we do not collect analytics, and we do not have accounts.
 
 ## What the app stores
 
