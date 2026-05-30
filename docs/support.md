@@ -1,13 +1,15 @@
 ---
 layout: page
 title: Support
-description: ADHD Habit Builder support — how to report issues, ask questions, or request features.
+description: Habi (Habit builder for kids with ADHD) support — how to report issues, ask questions, or request features.
 permalink: /support/
 ---
 
-# Support — ADHD Habit Builder
+# Support — Habi
 
-Thanks for using ADHD Habit Builder. This page is the best place to get help, report a bug, or share feedback.
+_Habit builder for kids with ADHD._
+
+Thanks for using Habi. This page is the best place to get help, report a bug, or share feedback.
 
 ## Get help or report a bug
 
@@ -26,7 +28,7 @@ Screenshots or a short screen recording are very helpful.
 
 ### Does the app work offline?
 
-Yes. ADHD Habit Builder is **fully offline**. It makes zero network calls and works the same in airplane mode as it does on Wi‑Fi.
+Yes. Habi is **fully offline**. It makes zero network calls and works the same in airplane mode as it does on Wi‑Fi.
 
 ### Do I need an account?
 
